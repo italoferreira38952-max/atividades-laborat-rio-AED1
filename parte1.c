@@ -1,8 +1,8 @@
 /*
  * Ponteiros + Alocação Dinâmica (vetor e matriz) com raylib
  * ---------------------------------------------------------------
- * Exercício 1: Redimensionamento em tempo real com realloc (ESPAÇO / BACKSPACE).
- * Exercício 2: Matriz como mapa de calor ao passar as bolas + contador de células visitadas.
+ * 1: Redimensionamento em tempo real com realloc (ESPAÇO / BACKSPACE).
+ * 2: Matriz como mapa de calor ao passar as bolas + contador de células visitadas.
  */
 
 #include "raylib.h"
