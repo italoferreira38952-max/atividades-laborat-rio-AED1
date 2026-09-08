@@ -43,7 +43,7 @@ void liberarMatriz(int **matriz, int linhas) {
 void desenharMatriz(int **matriz, int linhas, int colunas) {
     for (int i = 0; i < linhas; i++) {
         for (int j = 0; j < colunas; j++) {
-            // Células visitadas (1) ficam com uma cor mais clara
+            // Mudar a cor de desenho das células visitadas (valor 1) //
             Color cor = (matriz[i][j] == 1) ? (Color){60, 100, 150, 255}
                                             : (Color){15, 30, 55, 255};
             DrawRectangle(j * TAM_CELULA, i * TAM_CELULA,
@@ -77,7 +77,6 @@ Bola *criarBolas(int quantidade) {
     return bolas;
 }
 
-
 void atualizarBola(Bola *b) {
     b->pos.x += b->vel.x;
     b->pos.y += b->vel.y;
@@ -102,24 +101,28 @@ int main(void) {
     int quantidadeBolas = 12;
     Bola *bolas = criarBolas(quantidadeBolas);
 
+    // Contador de células visitadas //
     int celulasVisitadas = 0;
 
     while (!WindowShouldClose()) {
+        
+        // Adicionar bola dinamicamente com realloc ao pressionar ESPAÇO //
         if (IsKeyPressed(KEY_SPACE)) {
             quantidadeBolas++;
-            Bola *temp = (Bola *)realloc(bolas, quantidadeBolas * sizeof(Bola)); //
+            Bola *temp = (Bola *)realloc(bolas, quantidadeBolas * sizeof(Bola));
             if (temp != NULL) {
                 bolas = temp;
                 inicializarBola(bolas + (quantidadeBolas - 1));
             } else {
-                quantidadeBolas--; 
+                quantidadeBolas--;
             }
         }
 
+        // Remover bola dinamicamente com realloc ao pressionar BACKSPACE //
         if (IsKeyPressed(KEY_BACKSPACE) && quantidadeBolas > 0) {
             quantidadeBolas--;
             if (quantidadeBolas > 0) {
-                Bola *temp = (Bola *)realloc(bolas, quantidadeBolas * sizeof(Bola)); //
+                Bola *temp = (Bola *)realloc(bolas, quantidadeBolas * sizeof(Bola));
                 if (temp != NULL) {
                     bolas = temp;
                 }
@@ -132,17 +135,18 @@ int main(void) {
         for (int i = 0; i < quantidadeBolas; i++) {
             atualizarBola(bolas + i);
 
-            int lin = (int)(bolas[i].pos.y / TAM_CELULA); 
-            int col = (int)(bolas[i].pos.x / TAM_CELULA); 
+            // Converter posição para índice da matriz e marcar células visitadas //
+            int lin = (int)(bolas[i].pos.y / TAM_CELULA);
+            int col = (int)(bolas[i].pos.x / TAM_CELULA);
 
-           
-            if (lin >= 0 && lin < linhas && col >= 0 && col < colunas) { 
+            if (lin >= 0 && lin < linhas && col >= 0 && col < colunas) {
                 if (grade[lin][col] == 0) {
-                    grade[lin][col] = 1; 
-                    celulasVisitadas++;  
+                    grade[lin][col] = 1;
+                    celulasVisitadas++;
                 }
             }
         }
+
         BeginDrawing();
             ClearBackground(RAYWHITE);
 
@@ -154,8 +158,11 @@ int main(void) {
 
             DrawText(TextFormat("Bolas Ativas: %d (ESPACO: +1 | BACKSPACE: -1)", quantidadeBolas),
                      10, 10, 18, GREEN);
+            
+            //Exibir contador na tela //
             DrawText(TextFormat("Celulas Visitadas: %d / %d", celulasVisitadas, linhas * colunas),
                      10, 32, 18, YELLOW);
+            
             DrawText("Pressione ESC para sair", 10, ALTURA_JANELA - 25, 16, WHITE);
 
         EndDrawing();

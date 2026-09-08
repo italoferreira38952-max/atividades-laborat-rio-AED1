@@ -11,7 +11,7 @@ typedef enum {
     MOEDA_BRONZE,
     MOEDA_PRATA,
     MOEDA_OURO,
-    MOEDA_DIAMANTE 
+    MOEDA_DIAMANTE // Adicionada nova raridade no enum
 } TipoMoeda;
 
 typedef struct {
@@ -20,7 +20,7 @@ typedef struct {
     TipoMoeda tipo;
     int       valor;
     bool      coletada;
-    float     tempoColeta; 
+    float     tempoColeta; // Campo para armazenar o tempo exato da coleta
 } Moeda;
 
 Color corDaMoeda(TipoMoeda tipo) {
@@ -28,7 +28,7 @@ Color corDaMoeda(TipoMoeda tipo) {
         case MOEDA_BRONZE:   return (Color){160, 90, 40, 255};
         case MOEDA_PRATA:    return (Color){190, 190, 190, 255};
         case MOEDA_OURO:     return GOLD;
-        case MOEDA_DIAMANTE: return SKYBLUE; 
+        case MOEDA_DIAMANTE: return SKYBLUE; // EXERCÍCIO 2: Cor personalizada para a moeda de diamante
         default:             return WHITE;
     }
 }
@@ -38,7 +38,7 @@ int valorDaMoeda(TipoMoeda tipo) {
         case MOEDA_BRONZE:   return 5;
         case MOEDA_PRATA:    return 10;
         case MOEDA_OURO:     return 25;
-        case MOEDA_DIAMANTE: return 50; 
+        case MOEDA_DIAMANTE: return 50; //Definido o valor de 50 pontos para diamante
         default:             return 0;
     }
 }
@@ -53,12 +53,12 @@ Moeda *criarMoedas(int quantidade) {
                               GetRandomValue(30, ALTURA_JANELA - 30) };
         m->raio  = 10.0f;
         
-        // Diamante raro (1 em 10 chances)
-        if (GetRandomValue(0, 9) == 0) {
-            m->tipo = MOEDA_DIAMANTE;
-        } else {
-            m->tipo = (TipoMoeda)GetRandomValue(MOEDA_BRONZE, MOEDA_OURO);
-        }
+        // Regra de probabilidade para tornar a moeda de diamante mais rara (1 em 10)
+        if (GetRandomValue(0, 9) == 0) { //
+            m->tipo = MOEDA_DIAMANTE; //
+        } else { //
+            m->tipo = (TipoMoeda)GetRandomValue(MOEDA_BRONZE, MOEDA_OURO); //
+        } //
 
         m->valor    = valorDaMoeda(m->tipo);
         m->coletada = false;
@@ -76,7 +76,7 @@ bool tentarColetar(Moeda *m, Vector2 posJogador, float raioJogador) {
 
     if (distancia <= somaRaios) {
         m->coletada = true;
-        m->tempoColeta = GetTime(); 
+        m->tempoColeta = GetTime(); //Salva o tempo atual em segundos no momento da coleta
         return true;
     }
     return false;
@@ -109,12 +109,12 @@ int main(void) {
         for (int i = 0; i < TOTAL_MOEDAS; i++) {
             Moeda *m = (moedas + i);
 
-        
-            if (m->coletada && (GetTime() - m->tempoColeta >= 3.0f)) {
-                m->pos = (Vector2){ GetRandomValue(30, LARGURA_JANELA - 30),
-                                    GetRandomValue(30, ALTURA_JANELA - 30) };
-                m->coletada = false;
-            }
+            // Lógica para fazer a moeda reaparecer em nova posição após 3 segundos
+            if (m->coletada && (GetTime() - m->tempoColeta >= 3.0f)) { //
+                m->pos = (Vector2){ GetRandomValue(30, LARGURA_JANELA - 30), //
+                                    GetRandomValue(30, ALTURA_JANELA - 30) }; //
+                m->coletada = false; //
+            } //
 
             if (tentarColetar(m, jogador, RAIO_JOGADOR)) {
                 pontuacao += m->valor;

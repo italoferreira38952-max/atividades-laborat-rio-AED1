@@ -7,9 +7,10 @@
 #define RAIO_JOGADOR   20.0f
 #define TOTAL_ITENS    10
 
+// Criada struct auxiliar para os dados do escudo
 typedef struct {
-    int absorcao;
-} DadosEscudo;
+    int absorcao; //
+} DadosEscudo; //
 
 typedef struct {
     float dano;
@@ -23,13 +24,13 @@ typedef struct {
 typedef union {
     DadosArma   arma;
     DadosPocao  pocao;
-    DadosEscudo escudo;
+    DadosEscudo escudo; // Adicionado o campo do escudo dentro da union
 } DadosItem;
 
 typedef enum {
     ITEM_ARMA,
     ITEM_POCAO,
-    ITEM_ESCUDO
+    ITEM_ESCUDO // Adicionada a constante do escudo no enum
 } TipoItem;
 
 typedef struct {
@@ -44,7 +45,7 @@ typedef struct {
     Vector2 pos;
     int vida;
     float dano;
-    int armadura;
+    int armadura; // Adicionada a propriedade armadura ao Jogador
 } Jogador;
 
 Item *criarItens(int quantidade) {
@@ -64,14 +65,15 @@ Item *criarItens(int quantidade) {
             it->dados.arma.dano = (float)GetRandomValue(2, 8);
             it->dados.arma.alcance = GetRandomValue(1, 3);
         } else if (it->tipo == ITEM_POCAO) {
-            if (GetRandomValue(0, 9) < 3) {
-                it->dados.pocao.cura = -GetRandomValue(10, 25);
-            } else {
+            // Sorteio de 30% de chance para criar uma poção envenenada (cura negativa)
+            if (GetRandomValue(0, 9) < 3) { //
+                it->dados.pocao.cura = -GetRandomValue(10, 25); //
+            } else { //
                 it->dados.pocao.cura = GetRandomValue(10, 30);
-            }
-        } else if (it->tipo == ITEM_ESCUDO) {
-            it->dados.escudo.absorcao = GetRandomValue(5, 15);
-        }
+            } //
+        } else if (it->tipo == ITEM_ESCUDO) { //Inicialização dos dados de absorção do escudo
+            it->dados.escudo.absorcao = GetRandomValue(5, 15); //
+        } //
     }
     return itens;
 }
@@ -86,12 +88,12 @@ void aplicarItem(Jogador *j, Item *item) {
 
         case ITEM_POCAO:
             j->vida += item->dados.pocao.cura;
-            if (j->vida < 0) j->vida = 0;
+            if (j->vida < 0) j->vida = 0; // Garante que a vida não fique negativa ao tomar dano da poção
             break;
 
-        case ITEM_ESCUDO:
-            j->armadura += item->dados.escudo.absorcao;
-            break;
+        case ITEM_ESCUDO: // Aplicação do efeito do escudo incrementando a armadura
+            j->armadura += item->dados.escudo.absorcao; //
+            break; //
     }
     item->coletado = true;
 }
@@ -103,10 +105,10 @@ void desenharItem(Item *item) {
     if (item->tipo == ITEM_ARMA) {
         cor = RED;
     } else if (item->tipo == ITEM_POCAO) {
-        cor = (item->dados.pocao.cura < 0) ? PURPLE : GREEN;
-    } else if (item->tipo == ITEM_ESCUDO) {
-        cor = DARKBLUE;
-    }
+        cor = (item->dados.pocao.cura < 0) ? PURPLE : GREEN; //Pintar de roxo se for poção envenenada (cura < 0)
+    } else if (item->tipo == ITEM_ESCUDO) { // Definição da cor azul escuro para o item de escudo
+        cor = DARKBLUE; 
+    } 
 
     DrawCircleV(item->pos, item->raio, cor);
 }
@@ -127,7 +129,7 @@ int main(void) {
         .pos = { LARGURA_JANELA / 2.0f, ALTURA_JANELA / 2.0f },
         .vida = 50,
         .dano = 10.0f,
-        .armadura = 0
+        .armadura = 0 // Inicialização da armadura do jogador com 0
     };
 
     Item *itens = criarItens(TOTAL_ITENS);
@@ -156,7 +158,8 @@ int main(void) {
 
             DrawCircleV(jogador.pos, RAIO_JOGADOR, BLUE);
 
-            DrawText(TextFormat("Vida: %d | Dano: %.1f | Armadura: %d", jogador.vida, jogador.dano, jogador.armadura), 10, 10, 20, DARKGRAY);
+            //Exibição do valor atualizado da armadura na interface
+            DrawText(TextFormat("Vida: %d | Dano: %.1f | Armadura: %d", jogador.vida, jogador.dano, jogador.armadura), 10, 10, 20, DARKGRAY); //
             DrawText("Vermelho: Arma | Verde: Cura | Roxo: Veneno | Azul Escuro: Escudo", 10, ALTURA_JANELA - 25, 16, GRAY);
 
         EndDrawing();
