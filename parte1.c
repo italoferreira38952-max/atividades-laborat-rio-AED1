@@ -43,7 +43,7 @@ void liberarMatriz(int **matriz, int linhas) {
 void desenharMatriz(int **matriz, int linhas, int colunas) {
     for (int i = 0; i < linhas; i++) {
         for (int j = 0; j < colunas; j++) {
-            // Mudar a cor de desenho das células visitadas (valor 1) //
+            //  SMudar a cor de desenho das células visitadas (valor 1) //
             Color cor = (matriz[i][j] == 1) ? (Color){60, 100, 150, 255}
                                             : (Color){15, 30, 55, 255};
             DrawRectangle(j * TAM_CELULA, i * TAM_CELULA,
