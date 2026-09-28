@@ -1,8 +1,25 @@
 /*
  * Manipulação de Arquivos (texto e binário) com raylib
  * ---------------------------------------------------------------
- * Evolução da atividade5 com persistência de dados e soluções
- * dos Exercícios 1 e 2 da Atividade 6.
+ * Evolução da atividade5: o mesmo sistema de entidades (jogador,
+ * inimigos e itens) agora pode ter seu progresso PERSISTIDO em
+ * disco, de duas formas diferentes:
+ *
+ *   1) Arquivo de TEXTO ("placar.txt"): guarda um histórico legível
+ *      por humanos com a pontuação de cada partida, uma por linha,
+ *      escrito em modo "a" (anexar) com fprintf/fscanf.
+ *
+ *   2) Arquivo BINÁRIO ("save.bin"): guarda o estado completo do
+ *      jogo (todas as entidades, byte a byte) com fwrite/fread em
+ *      modo "wb"/"rb", permitindo continuar a partida de onde parou.
+ *
+ * Conceitos praticados:
+ *   - fopen / fclose e tratamento de erro (fopen retornando NULL)
+ *   - modo texto ("a", "r") x modo binário ("wb", "rb")
+ *   - fprintf / fscanf para dados legíveis (placar)
+ *   - fwrite / fread para dados binários (save/load do jogo)
+ *   - reaproveita ponteiros, alocação dinâmica, struct, enum e union
+ *     da atividade5 (Entidade, TipoEntidade, ExtraEntidade)
  *
  * Compilar (Linux, com raylib instalada):
  *    gcc atividade6.c -o atividade6 -lraylib -lm -lpthread -ldl -lrt -lX11
@@ -36,10 +53,10 @@ typedef union {
 
 typedef struct {
     TipoEntidade  tipo;
-    Vector2        pos;
-    float          raio;
-    int            vida;
-    Color          cor;
+    Vector2       pos;
+    float         raio;
+    int           vida;
+    Color         cor;
     ExtraEntidade extra;
 } Entidade;
 
@@ -106,25 +123,22 @@ void desenharEntidade(Entidade *e) {
     }
 }
 
-/* ---- EXERCÍCIO 1: Salvar Nome e Pontuação ---- */
+/* ---- arquivo de TEXTO: histórico de pontuação (fprintf/fscanf) ---- */
 void salvarPlacarTexto(const char *nomeJogador, int pontuacao) {
-    FILE *arquivo = fopen(ARQUIVO_PLACAR, "a");
+    FILE *arquivo = fopen(ARQUIVO_PLACAR, "a"); // "a": anexa ao final, modo texto
     if (arquivo == NULL) return;
 
-    // Grava o nome e a pontuação no formato "nome pontuacao\n"
     fprintf(arquivo, "%s %d\n", nomeJogador, pontuacao);
     fclose(arquivo);
 }
 
-/* lê todas as pontuações e nomes do arquivo de texto e devolve a maior pontuação */
+/* lê todas as pontuações do arquivo de texto e devolve a maior encontrada */
 int lerMelhorPontuacao(void) {
-    FILE *arquivo = fopen(ARQUIVO_PLACAR, "r");
+    FILE *arquivo = fopen(ARQUIVO_PLACAR, "r"); // "r": leitura, modo texto
     if (arquivo == NULL) return 0;
 
     int melhor = 0, valor = 0;
     char nomeLido[16];
-
-    // Lê os pares "nome pontuacao"
     while (fscanf(arquivo, "%15s %d", nomeLido, &valor) == 2) {
         if (valor > melhor) melhor = valor;
     }
@@ -132,22 +146,23 @@ int lerMelhorPontuacao(void) {
     return melhor;
 }
 
-/* ---- ARQUIVO BINÁRIO: Salvar e Carregar Estado do Jogo ---- */
+/* ---- arquivo BINÁRIO: estado completo do jogo (fwrite/fread) ---- */
 bool salvarJogoBinario(void) {
-    FILE *arquivo = fopen(ARQUIVO_SAVE, "wb");
+    FILE *arquivo = fopen(ARQUIVO_SAVE, "wb"); // "wb": escrita, modo binário
     if (arquivo == NULL) return false;
 
     fwrite(&totalEntidades, sizeof(int), 1, arquivo);
     for (int i = 0; i < totalEntidades; i++) {
-        fwrite(vetorEntidades[i], sizeof(Entidade), 1, arquivo);
+        fwrite(vetorEntidades[i], sizeof(Entidade), 1, arquivo); // grava a struct inteira, byte a byte
     }
 
     fclose(arquivo);
     return true;
 }
 
+/* recria o vetor de ponteiros a partir dos bytes gravados no arquivo binário */
 bool carregarJogoBinario(void) {
-    FILE *arquivo = fopen(ARQUIVO_SAVE, "rb");
+    FILE *arquivo = fopen(ARQUIVO_SAVE, "rb"); // "rb": leitura, modo binário
     if (arquivo == NULL) return false;
 
     int totalSalvo = 0;
@@ -170,13 +185,8 @@ bool carregarJogoBinario(void) {
     return true;
 }
 
-/* ---- EXERCÍCIO 2: Apagar o Jogo Salvo ---- */
 bool apagarJogoSalvo(void) {
-    // remove() retorna 0 em caso de sucesso no apagamento do arquivo
-    if (remove(ARQUIVO_SAVE) == 0) {
-        return true;
-    }
-    return false;
+    return (remove(ARQUIVO_SAVE) == 0);
 }
 
 int main(void) {
@@ -185,7 +195,6 @@ int main(void) {
     InitWindow(LARGURA_JANELA, ALTURA_JANELA, "Atividade 6 - Manipulacao de Arquivos (texto e binario)");
     SetTargetFPS(60);
 
-    // Exercício 1: Nome do jogador padrão (pode ser expandido para leitura via teclado na Raylib)
     char nomeJogador[16] = "Jogador1";
 
     Entidade *jogador = criarEntidade(ENTIDADE_JOGADOR,
@@ -202,7 +211,7 @@ int main(void) {
     }
 
     int pontuacao = 0;
-    int melhorPontuacao = lerMelhorPontuacao();
+    int melhorPontuacao = lerMelhorPontuacao(); // carrega o recorde salvo em placar.txt, se existir
     char mensagem[64] = "";
     float tempoMensagem = 0.0f;
 
@@ -228,33 +237,29 @@ int main(void) {
             }
         }
 
-        // F5: Salva o placar com Nome + Pontuação (Exercício 1)
-        if (IsKeyPressed(KEY_F5)) {
+        if (IsKeyPressed(KEY_F5)) { // salva a pontuação no arquivo de texto
             salvarPlacarTexto(nomeJogador, pontuacao);
             if (pontuacao > melhorPontuacao) melhorPontuacao = pontuacao;
-            TextCopy(mensagem, "Placar e Nome salvos em placar.txt!");
+            TextCopy(mensagem, "Placar salvo em placar.txt!");
             tempoMensagem = 2.0f;
         }
 
-        // F6: Salva o estado do jogo em binário
-        if (IsKeyPressed(KEY_F6)) {
+        if (IsKeyPressed(KEY_F6)) { // salva o estado do jogo no arquivo binário
             bool ok = salvarJogoBinario();
             TextCopy(mensagem, ok ? "Jogo salvo em save.bin!" : "Erro ao salvar save.bin!");
             tempoMensagem = 2.0f;
         }
 
-        // F9: Carrega o estado salvo em binário
-        if (IsKeyPressed(KEY_F9)) {
+        if (IsKeyPressed(KEY_F9)) { // carrega o estado do jogo do arquivo binário
             bool ok = carregarJogoBinario();
-            if (ok) jogador = vetorEntidades[0];
+            if (ok) jogador = vetorEntidades[0]; // ponteiros antigos foram liberados: reaponta para o novo jogador
             TextCopy(mensagem, ok ? "Jogo carregado de save.bin!" : "Nenhum save.bin encontrado!");
             tempoMensagem = 2.0f;
         }
 
-        // DELETE: Apaga o save binário (Exercício 2)
         if (IsKeyPressed(KEY_DELETE)) {
             bool ok = apagarJogoSalvo();
-            TextCopy(mensagem, ok ? "Arquivo save.bin apagado!" : "Nenhum save encontrado para apagar!");
+            TextCopy(mensagem, ok ? "Arquivo save.bin apagado!" : "Nenhum save encontrado!");
             tempoMensagem = 2.0f;
         }
 
@@ -267,11 +272,10 @@ int main(void) {
                 desenharEntidade(vetorEntidades[i]);
             }
 
-            DrawText(TextFormat("Jogador: %s | Vida: %d | Pontos: %d | Recorde: %d",
-                                 nomeJogador, jogador->vida, pontuacao, melhorPontuacao), 10, 10, 20, DARKGRAY);
-            
-            DrawText("F5 salva placar | F6 salva jogo | F9 carrega | DEL apaga save",
-                      10, 34, 16, GRAY);
+            DrawText(TextFormat("Jogador: %s | Vida: %d   Pontuacao: %d   Recorde: %d",
+                                 nomeJogador, jogador->vida, pontuacao, melhorPontuacao), 10, 10, 22, DARKGRAY);
+            DrawText("F5 salva placar (texto) | F6 salva jogo (binario) | F9 carrega jogo (binario) | DEL apaga save",
+                      10, 34, 18, GRAY);
             DrawText("Setas movem o jogador | ESC sai", 10, ALTURA_JANELA - 25, 16, GRAY);
 
             if (tempoMensagem > 0.0f) {
