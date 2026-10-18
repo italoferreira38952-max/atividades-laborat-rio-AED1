@@ -24,7 +24,7 @@ Placar *criarPlacares(int quantidade) {
     return placares;
 }
 
-/* ---- ordenação: bubble sort contando comparações e trocas ---- */
+/* ---- ordenação: bubble sort contando comparações e trocas ---- */ 
 void ordenarBubbleSort(Placar *vetor, int n, long *comparacoes, long *trocas) {
     *comparacoes = 0;
     *trocas = 0;
@@ -42,7 +42,7 @@ void ordenarBubbleSort(Placar *vetor, int n, long *comparacoes, long *trocas) {
     }
 }
 
-/* ---- ordenação: insertion sort contando comparações e trocas ---- */
+/* ---- ordenação: insertion sort contando comparações e trocas ---- */ // ex1
 void ordenarInsertionSort(Placar *vetor, int n, long *comparacoes, long *trocas) {
     *comparacoes = 0;
     *trocas = 0;
@@ -122,6 +122,7 @@ int main(void) {
     while (!WindowShouldClose()) {
 
         if (IsKeyPressed(KEY_O)) { // Ordena com bubble sort, contando comparações e trocas
+            //ex2
             double inicio = GetTime();
             ordenarBubbleSort(placares, TOTAL_PLACARES, &comparacoes, &trocas);
             double fim = GetTime();
