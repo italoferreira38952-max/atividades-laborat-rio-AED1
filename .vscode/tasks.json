@@ -3,36 +3,45 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "Compilar Raylib",
+            "label": "Criar pasta output",
+            "command": "New-Item -ItemType Directory -Force -Path '${fileDirname}/output'",
+            "presentation": { "reveal": "silent" }
+        },
+        {
+            "type": "shell",
+            "label": "Compilar Raylib (1 arquivo)",
+            "dependsOn": "Criar pasta output",
             "command": "C:/raylib/w64devkit/bin/gcc.exe",
             "args": [
                 "${file}",
-                "-o",
-                "${fileDirname}/jogo.exe",
-                "-m64",
-                "-O1",
-                "-Wall",
-                "-std=c99",
-                "-Wno-missing-braces",
+                "-o", "${fileDirname}/output/${fileBasenameNoExtension}.exe",
+                "-m64", "-O1", "-Wall", "-std=c99", "-Wno-missing-braces",
                 "-I", "C:/raylib/raylib/src",
                 "-L", "C:/raylib/raylib/src",
-                "-lraylib",
-                "-lopengl32",
-                "-lgdi32",
-                "-lwinmm"
+                "-lraylib", "-lopengl32", "-lgdi32", "-lwinmm"
             ],
-            "options": {
-                "env": {
-                    "PATH": "C:/raylib/w64devkit/bin;${env:PATH}"
-                }
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [
-                "$gcc"
-            ]
+            "options": { "env": { "PATH": "C:/raylib/w64devkit/bin;${env:PATH}" } },
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "type": "shell",
+            "label": "Compilar Raylib (com entidade.c)",
+            "dependsOn": "Criar pasta output",
+            "command": "C:/raylib/w64devkit/bin/gcc.exe",
+            "args": [
+                "${file}",
+                "${fileDirname}/entidade.c",
+                "${fileDirname}/inventario.c",
+                "-o", "${fileDirname}/output/${fileBasenameNoExtension}.exe",
+                "-m64", "-O1", "-Wall", "-std=c99", "-Wno-missing-braces",
+                "-I", "${fileDirname}",
+                "-I", "C:/raylib/raylib/src",
+                "-L", "C:/raylib/raylib/src",
+                "-lraylib", "-lopengl32", "-lgdi32", "-lwinmm"
+            ],
+            "options": { "env": { "PATH": "C:/raylib/w64devkit/bin;${env:PATH}" } },
+            "problemMatcher": ["$gcc"]
         }
     ]
 }
